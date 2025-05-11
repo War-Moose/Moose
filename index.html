@@ -2,155 +2,130 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>🦌 Monster Catcher</title>
+  <title>🦌 Moose Fishing Adventure</title>
   <style>
-    body { text-align: center; font-family: sans-serif; background: #eef; }
-    canvas { border: 1px solid #333; background: #fff; cursor: pointer; }
-    #battleUI { margin-top: 10px; }
-    .hidden { display: none; }
-    button { margin: 5px; padding: 10px 20px; font-size: 1em; }
-    #roster { margin-top: 20px; }
-    .monster { display: inline-block; margin: 5px; padding: 5px; border: 1px solid #333; background: #fff; }
-    .hp-bar { width: 100px; height: 10px; background: #ddd; border: 1px solid #333; position: relative; }
-    .hp-fill { height: 100%; background: green; }
+    body { background: #87CEEB; margin: 0; overflow: hidden; }
+    canvas { background: #ADD8E6; display: block; margin: 0 auto; }
   </style>
 </head>
 <body>
-  <h1>🦌 Monster Catcher</h1>
-  <canvas id="gameCanvas" width="400" height="400"></canvas>
-
-  <div id="battleUI" class="hidden">
-    <div id="wild">
-      <h2>Wild <span id="wildName"></span></h2>
-      <div class="hp-bar"><div id="wildHPFill" class="hp-fill"></div></div>
-      <button id="attackBtn">Attack</button>
-      <button id="catchBtn">Throw Catch</button>
-      <button id="runBtn">Run</button>
-    </div>
-    <div id="player">
-      <h2>Your <span id="playerName"></span></h2>
-      <div class="hp-bar"><div id="playerHPFill" class="hp-fill"></div></div>
-    </div>
-  </div>
-
-  <div id="roster">
-    <h2>Your Roster</h2>
-    <div id="rosterList"></div>
-  </div>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const fishColors = ['orange', 'green', 'purple', 'yellow'];
+    let fishArray = [];
+    const maxFish = 8;
 
-    const monsterTypes = [
-      { name: 'Flametail', color: 'orange', maxHp: 50, attackRange: [5, 15] },
-      { name: 'Aquadore', color: 'blue', maxHp: 60, attackRange: [5, 12] },
-      { name: 'Terradon', color: 'green', maxHp: 70, attackRange: [3, 10] }
-    ];
+    // Hook state
+    let hook = { x: canvas.width / 2, y: 50, isDropping: false, dy: 5 };
 
-    let playerMonster = { name: 'Starter Moose', color: 'brown', hp: 100, maxHp: 100, attackRange: [8, 18] };
-    let roster = [ playerMonster ];
-    let wildMonster = null;
-    let gameState = 'overworld';
-
-    function drawOverworld() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#8FBC8F';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'darkgreen';
-      ctx.font = '20px sans-serif';
-      ctx.fillText('Click to encounter a wild monster!', 50, 200);
+    // Initialize fish
+    class Fish {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.size = 20 + Math.random() * 10;
+        this.x = Math.random() < 0.5 ? -this.size : canvas.width + this.size;
+        this.y = 150 + Math.random() * (canvas.height - 200);
+        this.speed = (2 + Math.random() * 2) * (this.x > canvas.width/2 ? -1 : 1);
+        this.color = fishColors[Math.floor(Math.random() * fishColors.length)];
+        this.caught = false;
+      }
+      update() {
+        if (!this.caught) {
+          this.x += this.speed;
+          if (this.x < -this.size || this.x > canvas.width + this.size) this.reset();
+        }
+      }
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.size/2, this.size/3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // tail
+        ctx.beginPath();
+        if (this.speed > 0) {
+          ctx.moveTo(this.x - this.size/2, this.y);
+          ctx.lineTo(this.x - this.size/2 - 5, this.y - 5);
+          ctx.lineTo(this.x - this.size/2 - 5, this.y + 5);
+        } else {
+          ctx.moveTo(this.x + this.size/2, this.y);
+          ctx.lineTo(this.x + this.size/2 + 5, this.y - 5);
+          ctx.lineTo(this.x + this.size/2 + 5, this.y + 5);
+        }
+        ctx.fill();
+      }
     }
 
-    function startBattle() {
-      wildMonster = createWild();
-      gameState = 'battle';
-      document.getElementById('battleUI').classList.remove('hidden');
-      updateBattleUI();
+    function spawnFish() {
+      if (fishArray.length < maxFish) fishArray.push(new Fish());
     }
 
-    function createWild() {
-      const template = monsterTypes[Math.floor(Math.random() * monsterTypes.length)];
-      return { name: template.name, color: template.color, hp: template.maxHp, maxHp: template.maxHp, attackRange: template.attackRange };
-    }
-
-    function updateBattleUI() {
-      document.getElementById('wildName').textContent = wildMonster.name;
-      document.getElementById('playerName').textContent = playerMonster.name;
-      document.getElementById('wildHPFill').style.width = (wildMonster.hp / wildMonster.maxHp * 100) + '%';
-      document.getElementById('playerHPFill').style.width = (playerMonster.hp / playerMonster.maxHp * 100) + '%';
-      updateRoster();
-    }
-
-    function updateRoster() {
-      const list = document.getElementById('rosterList');
-      list.innerHTML = '';
-      roster.forEach(mon => {
-        const div = document.createElement('div');
-        div.className = 'monster';
-        div.textContent = `${mon.name} (HP: ${mon.hp}/${mon.maxHp})`;
-        list.appendChild(div);
+    function update() {
+      fishArray.forEach(f => f.update());
+      // Update hook
+      if (hook.isDropping) {
+        hook.y += hook.dy;
+        if (hook.y >= canvas.height - 10) hook.isDropping = false;
+      }
+      // Check collisions
+      fishArray.forEach(f => {
+        if (!f.caught && hook.isDropping === false && 
+            Math.hypot(f.x - hook.x, f.y - hook.y) < f.size) {
+          f.caught = true;
+          f.color = 'gray';
+          setTimeout(() => f.reset(), 1000);
+        }
       });
     }
 
-    canvas.addEventListener('click', () => {
-      if (gameState === 'overworld') startBattle();
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Draw water
+      ctx.fillStyle = '#1E90FF';
+      ctx.fillRect(0, 100, canvas.width, canvas.height - 100);
+      // Draw boat
+      ctx.fillStyle = 'saddlebrown';
+      ctx.fillRect(canvas.width/2 - 50, 30, 100, 20);
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.moveTo(canvas.width/2 - 40, 30);
+      ctx.lineTo(canvas.width/2, -20);
+      ctx.lineTo(canvas.width/2 + 40, 30);
+      ctx.fill();
+      // Draw hook
+      ctx.strokeStyle = '#555';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width/2, 50);
+      ctx.lineTo(hook.x, hook.y);
+      ctx.stroke();
+      ctx.fillStyle = '#555';
+      ctx.beginPath();
+      ctx.arc(hook.x, hook.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      // Draw fish
+      fishArray.forEach(f => f.draw());
+    }
+
+    function loop() {
+      spawnFish();
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      hook.x = e.clientX - rect.left;
+      hook.y = 50;
+      hook.isDropping = true;
     });
 
-    document.getElementById('attackBtn').onclick = () => {
-      const dmg = randRange(...playerMonster.attackRange);
-      wildMonster.hp = Math.max(0, wildMonster.hp - dmg);
-      if (wildMonster.hp > 0) {
-        const wdmg = randRange(...wildMonster.attackRange);
-        playerMonster.hp = Math.max(0, playerMonster.hp - wdmg);
-      }
-      if (wildMonster.hp === 0) {
-        alert(`You defeated ${wildMonster.name}!`);
-        endBattle();
-      } else if (playerMonster.hp === 0) {
-        alert(`${playerMonster.name} fainted!`);
-        playerMonster.hp = playerMonster.maxHp;
-        endBattle();
-      }
-      updateBattleUI();
-    };
-
-    document.getElementById('catchBtn').onclick = () => {
-      const chance = wildMonster.hp < wildMonster.maxHp/2 ? 0.7 : 0.3;
-      if (Math.random() < chance) {
-        alert(`Caught ${wildMonster.name}!`);
-        roster.push({ ...wildMonster });
-        endBattle();
-      } else {
-        alert(`${wildMonster.name} broke free!`);
-        const wdmg = randRange(...wildMonster.attackRange);
-        playerMonster.hp = Math.max(0, playerMonster.hp - wdmg);
-        if (playerMonster.hp === 0) {
-          alert(`${playerMonster.name} fainted!`);
-          playerMonster.hp = playerMonster.maxHp;
-          endBattle();
-        }
-        updateBattleUI();
-      }
-    };
-
-    document.getElementById('runBtn').onclick = () => {
-      alert('Got away safely!');
-      endBattle();
-    };
-
-    function endBattle() {
-      document.getElementById('battleUI').classList.add('hidden');
-      gameState = 'overworld';
-      drawOverworld();
-    }
-
-    function randRange(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    drawOverworld();
-    updateRoster();
+    loop();
   </script>
 </body>
 </html>
