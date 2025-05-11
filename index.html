@@ -4,139 +4,153 @@
   <meta charset="UTF-8">
   <title>🦌 Moose Fishing Adventure</title>
   <style>
-    body { background: #87CEEB; margin: 0; overflow: hidden; }
-    canvas { background: #ADD8E6; display: block; margin: 0 auto; }
+    body { font-family: sans-serif; background: #87CEEB; margin:0; padding:0; }
+    #nav { background: #556B2F; padding: 10px; text-align: center; }
+    #nav button { margin: 0 5px; padding: 8px 16px; color: #fff; background: #6B8E23; border:none; cursor:pointer; }
+    #nav button.active { background: #8FBC8F; }
+    #view > div { display: none; padding: 10px; }
+    #view > div.active { display: block; }
+    #gameCanvas { background: #ADD8E6; display: block; margin: 10px auto; border: 2px solid #333; }
+    table { margin:10px auto; border-collapse: collapse; }
+    th, td { border:1px solid #333; padding:5px 10px; }
+    #shop button { margin:5px; }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <h1 style="text-align:center;">🦌 Moose Fishing Adventure</h1>
+  <div id="nav">
+    <button id="btnFish" class="active">Fish</button>
+    <button id="btnTank">Tank</button>
+    <button id="btnRace">Race</button>
+    <button id="btnBattle">Battle</button>
+    <button id="btnShop">Shop</button>
+  </div>
+  <div id="view">
+    <div id="viewFish" class="active">
+      <canvas id="gameCanvas" width="600" height="400"></canvas>
+      <p style="text-align:center;">Click to drop hook. Rod: <span id="currentRod">Basic</span>, Hook: <span id="currentHook">Basic</span>, Tackle: <span id="currentTackle">Basic</span></p>
+    </div>
+    <div id="viewTank">
+      <h2>Your Fish Tank (0/10)</h2>
+      <div id="tankList"></div>
+    </div>
+    <div id="viewRace">
+      <h2>Fish Race</h2>
+      <button id="startRaceBtn">Race Your Fish</button>
+      <div id="raceResult"></div>
+    </div>
+    <div id="viewBattle">
+      <h2>Fish Battle</h2>
+      <button id="startBattleBtn">Battle Your Fish</button>
+      <div id="battleResult"></div>
+    </div>
+    <div id="viewShop">
+      <h2>Shop</h2>
+      <p>Gold: <span id="gold">100</span></p>
+      <button data-item="fishFood" data-cost="10">Buy Fish Food (10g)</button>
+      <button data-item="bait" data-cost="5">Buy Bait (5g)</button>
+      <button data-item="rod" data-cost="50">Buy Rod (50g)</button>
+      <button data-item="hook" data-cost="30">Buy Hook (30g)</button>
+      <button data-item="tackle" data-cost="20">Buy Tackle (20g)</button>
+      <h3>Sell Fish</h3>
+      <div id="sellList"></div>
+    </div>
+  </div>
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const fishColors = ['orange', 'green', 'purple', 'yellow'];
-    let fishArray = [];
-    const maxFish = 8;
-    // Hook state
-    let hook = { x: canvas.width / 2, y: 80, isDropping: false, dy: 5 };
-    // Fishing stats
-    let score = 0;
-    // Fish class
+    // --- Data & Classes ---
     class Fish {
-      constructor() { this.reset(); }
-      reset() {
-        this.size = 20 + Math.random() * 10;
-        this.x = Math.random() < 0.5 ? -this.size : canvas.width + this.size;
-        this.y = 150 + Math.random() * (canvas.height - 200);
-        this.speed = (2 + Math.random() * 2) * (this.x > canvas.width/2 ? -1 : 1);
-        this.color = fishColors[Math.floor(Math.random() * fishColors.length)];
-        this.caught = false;
+      constructor(name) {
+        this.name = name;
+        this.exp = 0;
+        this.lv = 1;
+        this.hp = 50;
+        this.maxHp = 50;
+        this.str = 10;
+        this.def = 5;
+        this.spd = 5;
       }
-      update() {
-        if (!this.caught) {
-          this.x += this.speed;
-          if (this.x < -this.size || this.x > canvas.width + this.size) this.reset();
-        }
+      get stats() {
+        return { exp:this.exp, hp:this.hp, str:this.str, def:this.def, spd:this.spd };
       }
-      draw() {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.ellipse(this.x, this.y, this.size/2, this.size/3, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // tail
-        ctx.beginPath();
-        if (this.speed > 0) {
-          ctx.moveTo(this.x - this.size/2, this.y);
-          ctx.lineTo(this.x - this.size/2 - 5, this.y - 5);
-          ctx.lineTo(this.x - this.size/2 - 5, this.y + 5);
-        } else {
-          ctx.moveTo(this.x + this.size/2, this.y);
-          ctx.lineTo(this.x + this.size/2 + 5, this.y - 5);
-          ctx.lineTo(this.x + this.size/2 + 5, this.y + 5);
-        }
-        ctx.fill();
+      gainExp(x) {
+        this.exp += x;
+        if(this.exp >= this.lv * 20) { this.exp -= this.lv*20; this.lv++; this.maxHp+=10; this.hp=this.maxHp; this.str+=2; this.def+=1; this.spd+=1; }
       }
     }
-    function spawnFish() {
-      if (fishArray.length < maxFish) fishArray.push(new Fish());
-    }
-    function update() {
-      fishArray.forEach(f => f.update());
-      if (hook.isDropping) {
-        hook.y += hook.dy;
-        if (hook.y >= canvas.height - 10) hook.isDropping = false;
+    const player = {
+      tank: [],
+      rod: 'Basic', hook: 'Basic', tackle: 'Basic',
+      fishFood: 5, bait:10,
+      gold:100
+    };
+    const fishNames = ['Goldfin', 'Carpzilla', 'Trouticus', 'Bassbeard'];
+
+    // --- View Switching ---
+    const views = ['Fish','Tank','Race','Battle','Shop'];
+    views.forEach(v=>{
+      document.getElementById('btn'+v).onclick=()=>{
+        views.forEach(x=> document.getElementById('btn'+x).classList.remove('active'), document.getElementById('view'+x).classList.remove('active'));
+        document.getElementById('btn'+v).classList.add('active'); document.getElementById('view'+v).classList.add('active'); updateAll();
       }
-      fishArray.forEach(f => {
-        if (!f.caught && !hook.isDropping &&
-            Math.hypot(f.x - hook.x, f.y - hook.y) < f.size) {
-          f.caught = true;
-          score++;
-          setTimeout(() => f.reset(), 1000);
-        }
-      });
-    }
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // water
-      ctx.fillStyle = '#1E90FF';
-      ctx.fillRect(0, 100, canvas.width, canvas.height - 100);
-      // boat
-      ctx.fillStyle = 'saddlebrown';
-      ctx.fillRect(canvas.width/2 - 50, 30, 100, 20);
-      ctx.fillStyle = 'white';
-      ctx.beginPath();
-      ctx.moveTo(canvas.width/2 - 40, 30);
-      ctx.lineTo(canvas.width/2, -20);
-      ctx.lineTo(canvas.width/2 + 40, 30);
-      ctx.fill();
-      // moose head
-      ctx.fillStyle = '#8B4513';
-      ctx.beginPath();
-      ctx.arc(canvas.width/2, 60, 20, 0, Math.PI * 2);
-      ctx.fill();
-      // antlers
-      ctx.strokeStyle = '#8B4513';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(canvas.width/2 - 10, 50);
-      ctx.lineTo(canvas.width/2 - 30, 30);
-      ctx.moveTo(canvas.width/2 - 10, 50);
-      ctx.lineTo(canvas.width/2 - 20, 40);
-      ctx.moveTo(canvas.width/2 + 10, 50);
-      ctx.lineTo(canvas.width/2 + 30, 30);
-      ctx.moveTo(canvas.width/2 + 10, 50);
-      ctx.lineTo(canvas.width/2 + 20, 40);
-      ctx.stroke();
-      // hook
-      ctx.strokeStyle = '#555';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(canvas.width/2, 80);
-      ctx.lineTo(hook.x, hook.y);
-      ctx.stroke();
-      ctx.fillStyle = '#555';
-      ctx.beginPath();
-      ctx.arc(hook.x, hook.y, 5, 0, Math.PI * 2);
-      ctx.fill();
-      // fish
-      fishArray.forEach(f => f.draw());
-      // score
-      ctx.fillStyle = '#000';
-      ctx.font = '20px sans-serif';
-      ctx.fillText(`Fish caught: ${score}`, 10, 30);
-    }
-    function loop() {
-      spawnFish();
-      update();
-      draw();
-      requestAnimationFrame(loop);
-    }
-    canvas.addEventListener('click', e => {
-      const rect = canvas.getBoundingClientRect();
-      hook.x = e.clientX - rect.left;
-      hook.y = 80;
-      hook.isDropping = true;
     });
-    loop();
+
+    // --- Fishing Canvas ---
+    const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+    let hook = { x:300, y:80, dy:5, dropping:false };
+    function drawFishing() {
+      ctx.fillStyle='#ADD8E6'; ctx.fillRect(0,100,600,300);
+      // boat & moose head (same as before)
+      ctx.fillStyle='saddlebrown'; ctx.fillRect(250,30,100,20);
+      ctx.fillStyle='#8B4513'; ctx.beginPath(); ctx.arc(300,60,20,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#8B4513'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(290,50); ctx.lineTo(270,30); ctx.moveTo(310,50); ctx.lineTo(330,30); ctx.stroke();
+      // hook
+      if(hook.dropping){ hook.y+=hook.dy; if(hook.y>380) hook.dropping=false; }
+      ctx.strokeStyle='#555'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(300,80); ctx.lineTo(hook.x,hook.y); ctx.stroke();
+      ctx.fillStyle='#555'; ctx.beginPath(); ctx.arc(hook.x,hook.y,5,0,Math.PI*2); ctx.fill();
+    }
+    canvas.onclick=e=>{ if(!hook.dropping && player.bait>0){ const rect=canvas.getBoundingClientRect(); hook.x=e.clientX-rect.left; hook.y=80; hook.dropping=true; player.bait--; attemptCatch(); updateAll(); }};
+    function attemptCatch(){ let chance = 0.3 + (player.rod==='Basic'?0:0.1);
+      if(Math.random()<chance && player.tank.length<10){ let f=new Fish(fishNames[Math.floor(Math.random()*fishNames.length)]); player.tank.push(f); alert('Caught '+f.name); } else alert('No catch'); }
+
+    // --- Tank View ---
+    function renderTank(){ const div=document.getElementById('tankList'); div.innerHTML='';
+      document.querySelector('#viewTank h2').textContent=`Your Fish Tank (${player.tank.length}/10)`;
+      player.tank.forEach((f,i)=>{ let btn=document.createElement('button'); btn.textContent=f.name+' (Lv'+f.lv+')'; btn.onclick=()=>showFishStats(i); div.appendChild(btn); });
+    }
+    function showFishStats(i){ let f=player.tank[i]; alert(`${f.name}\nLv ${f.lv}\nExp ${f.exp}\nHP ${f.hp}/${f.maxHp}\nSTR ${f.str}\nDEF ${f.def}\nSPD ${f.spd}`); }
+
+    // --- Race ---
+    document.getElementById('startRaceBtn').onclick=()=>{
+      if(!player.tank.length)return alert('No fish'); let f=player.tank[0]; let result = Math.random()*f.spd + f.lv;
+      f.gainExp(Math.floor(result)); document.getElementById('raceResult').textContent=`${f.name} raced and gained ${Math.floor(result)} exp!`; updateAll(); };
+
+    // --- Battle ---
+    document.getElementById('startBattleBtn').onclick=()=>{
+      if(!player.tank.length)return alert('No fish'); let f=player.tank[0]; let enemy=new Fish('Wildfin');
+      while(f.hp>0 && enemy.hp>0){ enemy.hp-=Math.max(0,f.str-enemy.def); if(enemy.hp<=0) break; f.hp-=Math.max(0,enemy.str-f.def); }
+      if(f.hp>0){ f.gainExp(20); alert(`${f.name} won!`);} else{ alert(`${f.name} lost!`);} f.hp=f.maxHp; enemy.hp=enemy.maxHp; updateAll(); };
+
+    // --- Fish Food ---
+    window.addEventListener('keydown',e=>{ if(e.key==='f'&&player.fishFood>0){ player.tank.forEach(f=>f.hp=Math.min(f.maxHp,f.hp+20)); player.fishFood--; updateAll(); alert('Fed your fish'); }});
+
+    // --- Shop ---
+    document.querySelectorAll('#viewShop button[data-item]').forEach(btn=> btn.onclick=()=>{
+      let item=btn.dataset.item, cost=+btn.dataset.cost;
+      if(player.gold>=cost){ player.gold-=cost; player[item]++; updateAll(); } else alert('Not enough gold'); });
+    function renderSell(){ const div=document.getElementById('sellList'); div.innerHTML='';
+      player.tank.forEach((f,i)=>{ let b=document.createElement('button'); b.textContent=`Sell ${f.name} for 20g`; b.onclick=()=>{ player.gold+=20; player.tank.splice(i,1); updateAll();}; div.appendChild(b); }); }
+
+    // --- Update All Views ---
+    function updateAll(){ drawFishing(); renderTank(); renderSell();
+      document.getElementById('currentRod').textContent=player.rod;
+      document.getElementById('currentHook').textContent=player.hook;
+      document.getElementById('currentTackle').textContent=player.tackle;
+      document.getElementById('gold').textContent=player.gold;
+      document.getElementById('viewShop h2').textContent=`Shop`;
+    }
+    updateAll();
+    function gameLoop(){ let v=document.querySelector('#viewFish.active'); if(v) drawFishing(); requestAnimationFrame(gameLoop); }
+    gameLoop();
   </script>
 </body>
 </html>
