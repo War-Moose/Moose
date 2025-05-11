@@ -10,22 +10,19 @@
 </head>
 <body>
   <canvas id="gameCanvas" width="600" height="400"></canvas>
-
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const fishColors = ['orange', 'green', 'purple', 'yellow'];
     let fishArray = [];
     const maxFish = 8;
-
     // Hook state
-    let hook = { x: canvas.width / 2, y: 50, isDropping: false, dy: 5 };
-
-    // Initialize fish
+    let hook = { x: canvas.width / 2, y: 80, isDropping: false, dy: 5 };
+    // Fishing stats
+    let score = 0;
+    // Fish class
     class Fish {
-      constructor() {
-        this.reset();
-      }
+      constructor() { this.reset(); }
       reset() {
         this.size = 20 + Math.random() * 10;
         this.x = Math.random() < 0.5 ? -this.size : canvas.width + this.size;
@@ -59,35 +56,30 @@
         ctx.fill();
       }
     }
-
     function spawnFish() {
       if (fishArray.length < maxFish) fishArray.push(new Fish());
     }
-
     function update() {
       fishArray.forEach(f => f.update());
-      // Update hook
       if (hook.isDropping) {
         hook.y += hook.dy;
         if (hook.y >= canvas.height - 10) hook.isDropping = false;
       }
-      // Check collisions
       fishArray.forEach(f => {
-        if (!f.caught && hook.isDropping === false && 
+        if (!f.caught && !hook.isDropping &&
             Math.hypot(f.x - hook.x, f.y - hook.y) < f.size) {
           f.caught = true;
-          f.color = 'gray';
+          score++;
           setTimeout(() => f.reset(), 1000);
         }
       });
     }
-
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Draw water
+      // water
       ctx.fillStyle = '#1E90FF';
       ctx.fillRect(0, 100, canvas.width, canvas.height - 100);
-      // Draw boat
+      // boat
       ctx.fillStyle = 'saddlebrown';
       ctx.fillRect(canvas.width/2 - 50, 30, 100, 20);
       ctx.fillStyle = 'white';
@@ -96,35 +88,54 @@
       ctx.lineTo(canvas.width/2, -20);
       ctx.lineTo(canvas.width/2 + 40, 30);
       ctx.fill();
-      // Draw hook
+      // moose head
+      ctx.fillStyle = '#8B4513';
+      ctx.beginPath();
+      ctx.arc(canvas.width/2, 60, 20, 0, Math.PI * 2);
+      ctx.fill();
+      // antlers
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width/2 - 10, 50);
+      ctx.lineTo(canvas.width/2 - 30, 30);
+      ctx.moveTo(canvas.width/2 - 10, 50);
+      ctx.lineTo(canvas.width/2 - 20, 40);
+      ctx.moveTo(canvas.width/2 + 10, 50);
+      ctx.lineTo(canvas.width/2 + 30, 30);
+      ctx.moveTo(canvas.width/2 + 10, 50);
+      ctx.lineTo(canvas.width/2 + 20, 40);
+      ctx.stroke();
+      // hook
       ctx.strokeStyle = '#555';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(canvas.width/2, 50);
+      ctx.moveTo(canvas.width/2, 80);
       ctx.lineTo(hook.x, hook.y);
       ctx.stroke();
       ctx.fillStyle = '#555';
       ctx.beginPath();
       ctx.arc(hook.x, hook.y, 5, 0, Math.PI * 2);
       ctx.fill();
-      // Draw fish
+      // fish
       fishArray.forEach(f => f.draw());
+      // score
+      ctx.fillStyle = '#000';
+      ctx.font = '20px sans-serif';
+      ctx.fillText(`Fish caught: ${score}`, 10, 30);
     }
-
     function loop() {
       spawnFish();
       update();
       draw();
       requestAnimationFrame(loop);
     }
-
-    canvas.addEventListener('click', (e) => {
+    canvas.addEventListener('click', e => {
       const rect = canvas.getBoundingClientRect();
       hook.x = e.clientX - rect.left;
-      hook.y = 50;
+      hook.y = 80;
       hook.isDropping = true;
     });
-
     loop();
   </script>
 </body>
