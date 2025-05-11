@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Moose Chase</title>
+  <style>
+    canvas { background: #87CEEB; display: block; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="600" height="400"></canvas>
+  <script>
+    const ctx = document.getElementById('canvas').getContext('2d');
+    let mooseX = 50, mooseY = 180;
+    function update() {
+      mooseX += 2; // moose charges right
+      if (mooseX > 600) mooseX = -50;
+    }
+    function draw() {
+      ctx.clearRect(0, 0, 600, 400);
+      // simple moose: brown rectangle with antlers
+      ctx.fillStyle = 'saddlebrown';
+      ctx.fillRect(mooseX, mooseY, 50, 30);
+      ctx.beginPath();
+      ctx.moveTo(mooseX+10, mooseY);
+      ctx.lineTo(mooseX, mooseY-20);
+      ctx.lineTo(mooseX+20, mooseY-20);
+      ctx.closePath();
+      ctx.fill();
+    }
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
