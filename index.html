@@ -1,237 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>🦌 Moose Fishing Adventure</title>
-  <style>
-    body { font-family: sans-serif; background: #87CEEB; margin:0; padding:0; }
-    #nav { background: #556B2F; padding: 10px; text-align: center; }
-    #nav button { margin: 0 5px; padding: 8px 16px; color: #fff; background: #6B8E23; border:none; cursor:pointer; }
-    #nav button.active { background: #8FBC8F; }
-    #view > div { display: none; padding: 10px; }
-    #view > div.active { display: block; }
-    canvas { display: block; margin: 10px auto; border: 2px solid #333; }
-    #gameCanvas { background: #ADD8E6; }
-    #raceCanvas { background: #D0F0C0; width:600px; height:200px; }
-    #tankList button, #shopSellList button { margin:5px; }
-    button { cursor: pointer; }
-  </style>
+  <meta charset="UTF-8" />
+  <title>Daily Task Tracker v1.2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <h1 style="text-align:center;">🦌 Moose Fishing Adventure</h1>
-  <div id="nav">
-    <button id="btnFish" class="active">Fish</button>
-    <button id="btnTank">Tank</button>
-    <button id="btnRace">Race</button>
-    <button id="btnBattle">Battle</button>
-    <button id="btnShop">Shop</button>
+  <!-- TITLE + DYNAMIC BADGES -->
+  <div id="title-container">
+    <div id="badgeLeft" class="title-badge"></div>
+    <h1 style="margin:0 10px;">Daily Task Tracker v1.2</h1>
+    <div id="badgeRight" class="title-badge"></div>
   </div>
-  <div id="view">
-    <!-- Fishing View -->
-    <div id="viewFish" class="active">
-      <canvas id="gameCanvas" width="600" height="400"></canvas>
-      <p style="text-align:center;">Click to cast (bait: <span id="lblBait">0</span>).<br>Rod: <span id="lblRod">Basic</span>, Hook: <span id="lblHook">Basic</span>, Tackle: <span id="lblTackle">Basic</span></p>
-    </div>
-    <!-- Tank View -->
-    <div id="viewTank">
-      <h2>Your Fish Tank (<span id="tankCount">0</span>/10)</h2>
-      <div id="tankList"></div>
-    </div>
-    <!-- Race View -->
-    <div id="viewRace">
-      <h2>Fish Race</h2>
-      <canvas id="raceCanvas" width="600" height="200"></canvas>
-      <p style="text-align:center;">Cheer your fish: click canvas or press <strong>Spacebar</strong> for a speed boost!</p>
-      <button id="btnRaceStart">Start Race</button>
-      <p id="raceResult"></p>
-    </div>
-    <!-- Battle View -->
-    <div id="viewBattle">
-      <h2>Fish Battle</h2>
-      <select id="battleSelect"></select>
-      <button id="btnBattleStart">Start Battle</button>
-      <p id="battleResult"></p>
-    </div>
-    <!-- Shop View -->
-    <div id="viewShop">
-      <h2>Shop</h2>
-      <p>Gold: <span id="lblGold">0</span></p>
-      <h3>Supplies</h3>
-      <button data-item="fishFood" data-cost="10">Buy Fish Food (10g)</button>
-      <button data-item="bait" data-cost="5">Buy Bait (5g)</button>
-      <h3>Gear</h3>
-      <button data-item="rod:Fiberglass" data-cost="50">Fiberglass Rod (50g)</button>
-      <button data-item="rod:Magnet" data-cost="100">Magnet Rod (100g)</button>
-      <button data-item="hook:Sharp" data-cost="30">Sharp Hook (30g)</button>
-      <button data-item="hook:SuperSharp" data-cost="60">SuperSharp Hook (60g)</button>
-      <button data-item="tackle:Spinner" data-cost="20">Spinner Tackle (20g)</button>
-      <button data-item="tackle:Lure" data-cost="40">Lure Tackle (40g)</button>
-      <h3>Sell Fish</h3>
-      <div id="shopSellList"></div>
-    </div>
+
+  <!-- COUNTERS -->
+  <p class="counter">Date: <span id="currentDate"></span></p>
+  <p class="counter">Daily Tasks Left: <span id="tasksLeft"></span></p>
+  <p class="counter">Daily Tasks Completed: <span id="tasksDone"></span></p>
+  <p class="counter">Total Tasks Completed: <span id="totalTasksDone"></span></p>
+  <p class="counter">Current Streak: <span id="streak"></span> days</p>
+  <p class="counter">Longest Streak: <span id="longestStreak"></span> days</p>
+
+  <!-- MAIN CONTROLS -->
+  <button onclick="completeTask()">Complete Task</button>
+  <button onclick="resetDay()">Reset Day</button>
+  <button onclick="advanceDay(-1)">-1 Day</button>
+  <button onclick="advanceDay(1)">+1 Day</button>
+  <button onclick="exportTrackerData()">Save Backup</button>
+  <input type="file" id="importInput" accept=".json" style="display:none"/>
+  <button onclick="document.getElementById('importInput').click()">Import Backup</button>
+  <button onclick="toggleMenu()">Menu</button>
+  <button onclick="togglePomodoro()">Pomodoro</button>
+  <button onclick="toggleAnalytics()">Analytics</button>
+
+  <!-- CALENDAR -->
+  <div class="calendar" id="calendar"></div>
+
+  <!-- SETTINGS MENU -->
+  <div id="menuOverlay" onclick="toggleMenu(false)"></div>
+  <div id="settingsMenu">
+    <select id="selectLeftBadge"></select>
+    <select id="selectRightBadge"></select>
+    <button onclick="toggleBadgeModal()">Badges</button>
+    <button onclick="resetBadges()">Reset Badges</button>
+    <h2>Settings Menu</h2>
+    <button onclick="resetTotalTasks()">Reset Total Tasks</button>
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <button onclick="resetDay()">Reset Day</button>
+    <button onclick="advanceDay(-1)">-1 Day</button>
+    <button onclick="advanceDay(1)">+1 Day</button>
+    <button onclick="toggleMenu(false)">Close</button>
   </div>
-<script>
-// --- Data & Classes ---
-class Fish {
-  constructor(name) {
-    this.name = name;
-    this.exp = 0; this.lv = 1;
-    this.maxHp = 50; this.hp = this.maxHp;
-    this.str = 10; this.def = 5; this.spd = 5;
-  }
-  gainExp(x) {
-    this.exp += x;
-    while(this.exp >= this.lv * 20) {
-      this.exp -= this.lv * 20; this.lv++;
-      this.maxHp += 10; this.hp = this.maxHp;
-      this.str += 2; this.def += 1; this.spd += 1;
-    }
-  }
-}
-const player = { tank: [], bait:10, fishFood:5, gold:100, rod:'Basic', hook:'Basic', tackle:'Basic' };
-const fishNames = ['Goldfin','Carpzilla','Trouticus','Bassbeard'];
 
-// --- View Control ---
-const views=['Fish','Tank','Race','Battle','Shop'];
-views.forEach(v=>{
-  document.getElementById('btn'+v).onclick=()=>{
-    views.forEach(x=>{
-      document.getElementById('btn'+x).classList.remove('active');
-      document.getElementById('view'+x).classList.remove('active');
-    });
-    document.getElementById('btn'+v).classList.add('active');
-    document.getElementById('view'+v).classList.add('active');
-    updateAll();
-  };
-});
+  <!-- BADGE MODAL -->
+  <div id="badgeModal">
+    <h2>Achievements</h2>
+    <div id="badgeGrid"></div>
+    <button onclick="toggleBadgeModal(false)">Close</button>
+  </div>
+  <div id="badgePopup"></div>
 
-// --- Update UI ---
-function updateAll(){
-  document.getElementById('lblBait').textContent = player.bait;
-  document.getElementById('lblRod').textContent = player.rod;
-  document.getElementById('lblHook').textContent = player.hook;
-  document.getElementById('lblTackle').textContent = player.tackle;
-  document.getElementById('lblGold').textContent = player.gold;
-  renderTank(); renderBattleList(); renderShopSell();
-}
+  <!-- POMODORO MODAL -->
+  <div id="pomodoroOverlay" onclick="togglePomodoro(false)"></div>
+  <div id="pomodoroModal" class="pom-modal">
+    <h2>Pomodoro Timer</h2>
+    <div id="pomProgressContainer">
+      <div id="pomTimerDisplay">25:00</div>
+    </div>
+    <button id="pomStartBtn">Start Pomodoro</button>
+    <button onclick="togglePomodoro(false)">Close</button>
+  </div>
 
-// --- Fishing Logic ---
-const gameCanvas=document.getElementById('gameCanvas'), ctx=gameCanvas.getContext('2d');
-let hookPos={x:300,y:80,dy:5,dropping:false};
-function drawFishing(){
-  ctx.clearRect(0,0,600,400);
-  ctx.fillStyle='#ADD8E6'; ctx.fillRect(0,100,600,300);
-  ctx.fillStyle='saddlebrown'; ctx.fillRect(250,30,100,20);
-  ctx.fillStyle='#8B4513'; ctx.beginPath(); ctx.arc(300,60,20,0,2*Math.PI); ctx.fill();
-  ctx.strokeStyle='#8B4513'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(290,50); ctx.lineTo(270,30); ctx.moveTo(310,50); ctx.lineTo(330,30); ctx.stroke();
-  if(hookPos.dropping){ hookPos.y+=hookPos.dy; if(hookPos.y>380) hookPos.dropping=false; }
-  ctx.strokeStyle='#555'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(300,80); ctx.lineTo(hookPos.x,hookPos.y); ctx.stroke();
-  ctx.fillStyle='#555'; ctx.beginPath(); ctx.arc(hookPos.x,hookPos.y,5,0,2*Math.PI); ctx.fill();
-}
-gameCanvas.onclick=e=>{
-  if(!hookPos.dropping && player.bait>0){
-    const r=gameCanvas.getBoundingClientRect();
-    hookPos.x=e.clientX-r.left; hookPos.y=80; hookPos.dropping=true;
-    player.bait--; attemptCatch(); updateAll();
-  }
-};
-function attemptCatch(){
-  let chance=0.2 + (player.rod==='Fiberglass'?0.1:(player.rod==='Magnet'?0.2:0))
-             + (player.hook==='Sharp'?0.05:(player.hook==='SuperSharp'?0.1:0))
-             + (player.tackle==='Spinner'?0.05:(player.tackle==='Lure'?0.1:0));
-  if(Math.random()<chance){
-    if(player.tank.length<10){ let f=new Fish(fishNames[Math.floor(Math.random()*fishNames.length)]);
-      player.tank.push(f); alert('Caught '+f.name+'!'); }
-    else alert('Tank full!');
-  } else alert('No catch');
-}
+  <!-- ANALYTICS MODAL -->
+  <div id="analyticsOverlay" onclick="toggleAnalytics(false)"></div>
+  <div id="analyticsModal" class="analytics-modal">
+    <h2>Weekly • Monthly • Year Analytics</h2>
 
-// --- Tank View ---
-function renderTank(){
-  document.getElementById('tankCount').textContent = player.tank.length;
-  const div=document.getElementById('tankList'); div.innerHTML='';
-  player.tank.forEach((f,i)=>{
-    let btn=document.createElement('button'); btn.textContent=`${f.name} (Lv${f.lv})`;
-    btn.onclick=()=>showStats(i); div.appendChild(btn);
-  });
-}
-function showStats(i){ let f=player.tank[i];
-  alert(`${f.name}\nLv:${f.lv} EXP:${f.exp}/${f.lv*20}\nHP:${f.hp}/${f.maxHp} STR:${f.str} DEF:${f.def} SPD:${f.spd}`);
-}
+    <div class="chart-nav">
+      <button onclick="changeWeek(-1)">&larr;</button>
+      <span id="weeklyLabel" class="chart-label"></span>
+      <button onclick="changeWeek(1)">&rarr;</button>
+    </div>
+    <div class="chart-container">
+      <canvas id="weeklyChart"></canvas>
+    </div>
 
-// --- Race Logic ---
-const raceCanvas=document.getElementById('raceCanvas'), raceCtx=raceCanvas.getContext('2d');
-let raceParticipants=[], raceActive=false;
-document.getElementById('btnRaceStart').onclick=()=>{
-  if(!player.tank.length) return alert('No fish');
-  let pFish=player.tank[0]; // first fish
-  let opponents=[];
-  for(let i=0;i<3;i++){ opponents.push(new Fish(fishNames[Math.floor(Math.random()*fishNames.length)])); }
-  raceParticipants = [pFish, ...opponents].map(f=>({fish:f, x:0, baseSpeed:f.spd*0.5+2, boost:0}));
-  raceActive=true; document.getElementById('raceResult').textContent='';
-};
-raceCanvas.addEventListener('click',()=>{ if(raceActive) raceParticipants[0].boost+=2; });
-window.addEventListener('keydown',e=>{ if(e.code==='Space'&&raceActive) raceParticipants[0].boost+=2; });
-function drawRace(){
-  raceCtx.clearRect(0,0,600,200);
-  raceParticipants.forEach((p,i)=>{
-    let y=40+i*40;
-    raceCtx.fillStyle='#E0FFE0'; raceCtx.fillRect(0,y-20,600,30);
-    raceCtx.fillStyle='#333'; raceCtx.fillRect(550,y-20,5,30);
-    raceCtx.beginPath(); raceCtx.arc(p.x,y,10,0,2*Math.PI);
-    raceCtx.fillStyle=i===0?'red':'gray'; raceCtx.fill();
-    raceCtx.fillStyle='#000'; raceCtx.fillText(p.fish.name, p.x+15,y+5);
-  });
-  if(raceActive){
-    let winner=null;
-    raceParticipants.forEach((p,i)=>{
-      let speed=p.baseSpeed + (i===0?p.boost:0);
-      p.x += speed;
-      if(i===0 && p.boost>0) p.boost=Math.max(0,p.boost-0.5);
-      if(p.x>=540 && winner===null) winner=i;
-    });
-    if(winner!==null){ raceActive=false;
-      if(winner===0){ pFish.gainExp(10); document.getElementById('raceResult').textContent='Your fish won and gained 10 EXP!'; }
-      else document.getElementById('raceResult').textContent=`Opponent ${raceParticipants[winner].fish.name} won.`;
-      updateAll();
-    }
-  }
-}
-setInterval(drawRace,50);
+    <div class="chart-nav">
+      <button onclick="changeMonth(-1)">&larr;</button>
+      <span id="monthlyLabel" class="chart-label"></span>
+      <button onclick="changeMonth(1)">&rarr;</button>
+    </div>
+    <div class="chart-container">
+      <canvas id="monthlyChart"></canvas>
+    </div>
 
-// --- Battle View ---
-function renderBattleList(){ const sel=document.getElementById('battleSelect'); sel.innerHTML='';
-  player.tank.forEach((f,i)=>{ let opt=new Option(`${f.name} (HP:${f.hp})`,i); sel.add(opt); });
-}
-document.getElementById('btnBattleStart').onclick=()=>{
-  const idx=+document.getElementById('battleSelect').value; if(isNaN(idx)) return alert('No fish');
-  let f=player.tank[idx], e=new Fish('Wildfin');
-  while(f.hp>0 && e.hp>0){ e.hp-=Math.max(1,f.str-e.def); if(e.hp<=0) break; f.hp-=Math.max(1,e.str-f.def); }
-  if(f.hp>0){ f.gainExp(20); alert(`${f.name} won!`);} else alert(`${f.name} lost.`);
-  f.hp=f.maxHp; updateAll();
-};
+    <div class="chart-nav">
+      <button onclick="changeYear(-1)">&larr;</button>
+      <span id="yearLabel" class="chart-label"></span>
+      <button onclick="changeYear(1)">&rarr;</button>
+    </div>
+    <div class="chart-container">
+      <canvas id="yearChart"></canvas>
+    </div>
 
-// --- Shop View ---
-Array.from(document.querySelectorAll('#viewShop button[data-item]')).forEach(btn=>{
-  btn.onclick=()=>{
-    const [type,val]=btn.dataset.item.split(':'); const cost=+btn.dataset.cost;
-    if(player.gold<cost) return alert('Not enough gold'); player.gold-=cost;
-    if(type==='bait'||type==='fishFood') player[type]++;
-    else player[type]=val;
-    updateAll();
-  };
-});
-function renderShopSell(){ const div=document.getElementById('shopSellList'); div.innerHTML='';
-  player.tank.forEach((f,i)=>{ let btn=document.createElement('button');
-    let price=f.lv*20; btn.textContent=`Sell ${f.name} for ${price}g`;
-    btn.onclick=()=>{ player.gold+=price; player.tank.splice(i,1); updateAll(); };
-    div.appendChild(btn);
-  });
-}
+    <button onclick="toggleAnalytics(false)">Close</button>
+  </div>
 
-// --- Initialize ---
-updateAll();
-(function loop(){ if(document.getElementById('viewFish').classList.contains('active')) drawFishing(); requestAnimationFrame(loop); })();
-</script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
