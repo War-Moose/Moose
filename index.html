@@ -27,88 +27,85 @@
   <p class="counter">Longest Streak: <span id="longestStreak"></span> days</p>
 
   <!-- MAIN CONTROLS -->
-  <button onclick="completeTask()">Complete Task</button>
-  <button onclick="resetDay()">Reset Day</button>
-  <button onclick="advanceDay(-1)">-1 Day</button>
-  <button onclick="advanceDay(1)">+1 Day</button>
-  <button onclick="exportTrackerData()">Save Backup</button>
+  <button id="btn-complete">Complete Task</button>
+  <button id="btn-reset-day">Reset Day</button>
+  <button id="btn-prev-day">-1 Day</button>
+  <button id="btn-next-day">+1 Day</button>
+  <button id="btn-export">Save Backup</button>
   <input type="file" id="importInput" accept=".json" style="display:none"/>
-  <button onclick="document.getElementById('importInput').click()">Import Backup</button>
-  <button onclick="toggleMenu()">Menu</button>
-  <button onclick="togglePomodoro()">Pomodoro</button>
-  <button onclick="toggleAnalytics()">Analytics</button>
+  <button id="btn-import">Import Backup</button>
+  <button id="btn-toggle-menu">Menu</button>
+  <button id="btn-pomodoro">Pomodoro</button>
+  <button id="btn-analytics">Analytics</button>
 
   <!-- CALENDAR -->
   <div class="calendar" id="calendar"></div>
 
   <!-- SETTINGS MENU -->
-  <div id="menuOverlay" onclick="toggleMenu(false)"></div>
+  <div id="menuOverlay"></div>
   <div id="settingsMenu">
     <select id="selectLeftBadge"></select>
     <select id="selectRightBadge"></select>
-    <button onclick="toggleBadgeModal()">Badges</button>
-    <button onclick="resetBadges()">Reset Badges</button>
+    <button id="btn-toggle-badge-modal">Badges</button>
+    <button id="btn-reset-badges">Reset Badges</button>
     <h2>Settings Menu</h2>
-    <button onclick="resetTotalTasks()">Reset Total Tasks</button>
-    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
-    <button onclick="resetDay()">Reset Day</button>
-    <button onclick="advanceDay(-1)">-1 Day</button>
-    <button onclick="advanceDay(1)">+1 Day</button>
-    <button onclick="toggleMenu(false)">Close</button>
+    <button id="btn-reset-total">Reset Total Tasks</button>
+    <button id="btn-toggle-dark">Toggle Dark Mode</button>
+    <button id="btn-close-menu">Close</button>
   </div>
 
   <!-- BADGE MODAL -->
   <div id="badgeModal">
     <h2>Achievements</h2>
     <div id="badgeGrid"></div>
-    <button onclick="toggleBadgeModal(false)">Close</button>
+    <button id="btn-close-badge-modal">Close</button>
   </div>
   <div id="badgePopup"></div>
 
   <!-- POMODORO MODAL -->
-  <div id="pomodoroOverlay" onclick="togglePomodoro(false)"></div>
+  <div id="pomodoroOverlay"></div>
   <div id="pomodoroModal" class="pom-modal">
     <h2>Pomodoro Timer</h2>
     <div id="pomProgressContainer">
       <div id="pomTimerDisplay">25:00</div>
     </div>
     <button id="pomStartBtn">Start Pomodoro</button>
-    <button onclick="togglePomodoro(false)">Close</button>
+    <button id="btn-close-pomodoro">Close</button>
   </div>
 
   <!-- ANALYTICS MODAL -->
-  <div id="analyticsOverlay" onclick="toggleAnalytics(false)"></div>
+  <div id="analyticsOverlay"></div>
   <div id="analyticsModal" class="analytics-modal">
     <h2>Weekly • Monthly • Year Analytics</h2>
 
     <div class="chart-nav">
-      <button onclick="changeWeek(-1)">&larr;</button>
+      <button id="week-prev">&larr;</button>
       <span id="weeklyLabel" class="chart-label"></span>
-      <button onclick="changeWeek(1)">&rarr;</button>
+      <button id="week-next">&rarr;</button>
     </div>
     <div class="chart-container">
       <canvas id="weeklyChart"></canvas>
     </div>
 
     <div class="chart-nav">
-      <button onclick="changeMonth(-1)">&larr;</button>
+      <button id="month-prev">&larr;</button>
       <span id="monthlyLabel" class="chart-label"></span>
-      <button onclick="changeMonth(1)">&rarr;</button>
+      <button id="month-next">&rarr;</button>
     </div>
     <div class="chart-container">
       <canvas id="monthlyChart"></canvas>
     </div>
 
     <div class="chart-nav">
-      <button onclick="changeYear(-1)">&larr;</button>
+      <button id="year-prev">&larr;</button>
       <span id="yearLabel" class="chart-label"></span>
-      <button onclick="changeYear(1)">&rarr;</button>
+      <button id="year-next">&rarr;</button>
     </div>
     <div class="chart-container">
       <canvas id="yearChart"></canvas>
     </div>
 
-    <button onclick="toggleAnalytics(false)">Close</button>
+    <button id="btn-close-analytics">Close</button>
   </div>
 
   <script type="module" src="js/main.js"></script>
