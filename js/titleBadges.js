@@ -1,3 +1,5 @@
+import { badges } from './badges.js';
+
 // ——— TITLE BADGES ———
 export function updateTitleBadges() {
   const leftId  = localStorage.getItem("titleBadgeLeft"),
