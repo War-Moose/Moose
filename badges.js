@@ -6,7 +6,6 @@ const badgesConfig = [
   { id: 'first',    name: 'First Task Complete',  cond: () => completionDates.size >= 1 },
   { id: 'five',     name: '5 Tasks Complete',     cond: () => completionDates.size >= 5 },
   { id: 'threeDay', name: '3-Day Streak',         cond: () => computeStreak() >= 3 },
-  // Add more badge definitions here as needed
 ];
 
 export function renderBadges() {
