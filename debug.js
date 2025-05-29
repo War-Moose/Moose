@@ -2,7 +2,7 @@
 import { completionDates, saveData } from './storage.js';
 import { formatDate } from './streak.js';
 import { updateStreakDisplay } from './streak.js';
-import { renderCalendar } from './calendar.js';
+import { renderCalendar, currentYear, currentMonth } from './calendar.js';
 import { renderBadges } from './badges.js';
 
 export function setupDebugMenu() {
