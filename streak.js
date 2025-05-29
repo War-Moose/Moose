@@ -13,9 +13,7 @@ export function computeStreak() {
     if (completionDates.has(d)) {
       streak++;
       date.setDate(date.getDate() - 1);
-    } else {
-      break;
-    }
+    } else break;
   }
   return streak;
 }
