@@ -1,7 +1,7 @@
 // main.js
 import { completionDates, saveData } from './storage.js';
 import { formatDate, updateStreakDisplay } from './streak.js';
-import { renderCalendar } from './calendar.js';
+import { renderCalendar, currentYear, currentMonth } from './calendar.js';
 import { renderBadges } from './badges.js';
 import { setupDebugMenu } from './debug.js';
 
