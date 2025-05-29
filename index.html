@@ -1,113 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Daily Task Tracker v1.2</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Chart.js for analytics -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Confetti library -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Task Tracker</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- TITLE + DYNAMIC BADGES -->
-  <div id="title-container">
-    <div id="badgeLeft" class="title-badge"></div>
-    <h1 style="margin:0 10px;">Daily Task Tracker v1.2</h1>
-    <div id="badgeRight" class="title-badge"></div>
+  <div class="container">
+    <header>
+      <h1>Daily Task Tracker</h1>
+      <div id="streak">Current Streak: 0 days</div>
+      <button id="menuBtn">Menu</button>
+    </header>
+    <main>
+      <button id="completeTaskBtn">Complete Today's Task</button>
+      <section id="calendar"></section>
+      <section id="badges"></section>
+    </main>
   </div>
 
-  <!-- COUNTERS -->
-  <p class="counter">Date: <span id="currentDate"></span></p>
-  <p class="counter">Daily Tasks Left: <span id="tasksLeft"></span></p>
-  <p class="counter">Daily Tasks Completed: <span id="tasksDone"></span></p>
-  <p class="counter">Total Tasks Completed: <span id="totalTasksDone"></span></p>
-  <p class="counter">Current Streak: <span id="streak"></span> days</p>
-  <p class="counter">Longest Streak: <span id="longestStreak"></span> days</p>
-
-  <!-- MAIN CONTROLS -->
-  <button id="btn-complete">Complete Task</button>
-  <button id="btn-reset-day">Reset Day</button>
-  <button id="btn-prev-day">-1 Day</button>
-  <button id="btn-next-day">+1 Day</button>
-  <button id="btn-export">Save Backup</button>
-  <input type="file" id="importInput" accept=".json" style="display:none"/>
-  <button id="btn-import">Import Backup</button>
-  <button id="btn-toggle-menu">Menu</button>
-  <button id="btn-pomodoro">Pomodoro</button>
-  <button id="btn-analytics">Analytics</button>
-
-  <!-- CALENDAR -->
-  <div class="calendar" id="calendar"></div>
-
-  <!-- SETTINGS MENU -->
-  <div id="menuOverlay"></div>
-  <div id="settingsMenu">
-    <select id="selectLeftBadge"></select>
-    <select id="selectRightBadge"></select>
-    <button id="btn-toggle-badge-modal">Badges</button>
-    <button id="btn-reset-badges">Reset Badges</button>
-    <h2>Settings Menu</h2>
-    <button id="btn-reset-total">Reset Total Tasks</button>
-    <button id="btn-toggle-dark">Toggle Dark Mode</button>
-    <button id="btn-close-menu">Close</button>
+  <!-- Debug Menu Modal -->
+  <div id="debugModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>Debug Menu</h2>
+      <button id="markYesterday">Mark Yesterday Complete</button>
+      <div class="debug-date">
+        <input type="date" id="debugDate">
+        <button id="toggleDate">Toggle Completion</button>
+      </div>
+    </div>
   </div>
 
-  <!-- BADGE MODAL -->
-  <div id="badgeModal">
-    <h2>Achievements</h2>
-    <div id="badgeGrid"></div>
-    <button id="btn-close-badge-modal">Close</button>
-  </div>
-  <div id="badgePopup"></div>
-
-  <!-- POMODORO MODAL -->
-  <div id="pomodoroOverlay"></div>
-  <div id="pomodoroModal" class="pom-modal">
-    <h2>Pomodoro Timer</h2>
-    <div id="pomProgressContainer">
-      <div id="pomTimerDisplay">25:00</div>
-    </div>
-    <button id="pomStartBtn">Start Pomodoro</button>
-    <button id="btn-close-pomodoro">Close</button>
-  </div>
-
-  <!-- ANALYTICS MODAL -->
-  <div id="analyticsOverlay"></div>
-  <div id="analyticsModal" class="analytics-modal">
-    <h2>Weekly • Monthly • Year Analytics</h2>
-
-    <div class="chart-nav">
-      <button id="week-prev">&larr;</button>
-      <span id="weeklyLabel" class="chart-label"></span>
-      <button id="week-next">&rarr;</button>
-    </div>
-    <div class="chart-container">
-      <canvas id="weeklyChart"></canvas>
-    </div>
-
-    <div class="chart-nav">
-      <button id="month-prev">&larr;</button>
-      <span id="monthlyLabel" class="chart-label"></span>
-      <button id="month-next">&rarr;</button>
-    </div>
-    <div class="chart-container">
-      <canvas id="monthlyChart"></canvas>
-    </div>
-
-    <div class="chart-nav">
-      <button id="year-prev">&larr;</button>
-      <span id="yearLabel" class="chart-label"></span>
-      <button id="year-next">&rarr;</button>
-    </div>
-    <div class="chart-container">
-      <canvas id="yearChart"></canvas>
-    </div>
-
-    <button id="btn-close-analytics">Close</button>
-  </div>
-
-  <script type="module" src="js/main.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
